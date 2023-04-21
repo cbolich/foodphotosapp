@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    image: my_fastapi_app
+    container_name: fastapi_container
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo:4.4
+    container_name: mongodb_container
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=secret
+    volumes:
+      - mongodb_data:/data/db
+
+  nginx:
+    build: 
+      context: ./nginx
+      dockerfile: Dockerfile
+    image: my_nginx_proxy
+    container_name: nginx_container
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+
+volumes:
+  mongodb_data:
