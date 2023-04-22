@@ -1,0 +1,8 @@
+/controlnet/detect
+{
+  "controlnet_module": "none",
+  "controlnet_input_images": [],
+  "controlnet_processor_res": 512,
+  "controlnet_threshold_a": 64,
+  "controlnet_threshold_b": 64
+}
