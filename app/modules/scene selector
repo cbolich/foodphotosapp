@@ -1,2 +1,2 @@
-# based on what scene the user has chosen, choose 2-3 similar scenes to send to the controlnet
+# based on what scene the user has chosen, choose 2-3 similar scenes from DB to send to the controlnet
 # the output of this will be passed to the generation payload module

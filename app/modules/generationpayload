@@ -1,3 +1,7 @@
+#need to add model override or model picker
+#https://github.com/AUTOMATIC1111/stable-diffusion-webui/pull/5191
+#lets have realisticvision2.0 be the baseline model
+
 {
   "enable_hr": false,
   "denoising_strength": 0,
