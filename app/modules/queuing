@@ -1,2 +1,55 @@
-only serve 1 thing at a time to automatic1111
-not sure if this goes here or inside nginx
+#only serve 1 thing at a time to automatic1111
+#not sure if this goes here or inside nginx
+
+#need to tie this to a status pull from automatic1111
+
+
+import threading
+import time
+import queue
+
+def function_to_execute():
+    # Simulating a function that takes some time to execute
+    time.sleep(2)
+    return "Function completed."
+
+def worker(input_queue, output_queue):
+    while True:
+        request = input_queue.get()
+        if request is None:
+            break
+        result = function_to_execute()
+        output_queue.put(result)
+        input_queue.task_done()
+
+def queuing_function(requests):
+    input_queue = queue.Queue()
+    output_queue = queue.Queue()
+
+    # Start the worker thread
+    worker_thread = threading.Thread(target=worker, args=(input_queue, output_queue))
+    worker_thread.start()
+
+    # Enqueue the requests
+    for request in requests:
+        input_queue.put(request)
+
+    # Add a sentinel to stop the worker thread
+    input_queue.put(None)
+
+    # Wait for the worker to finish processing all requests
+    input_queue.join()
+
+    # Retrieve the results
+    results = []
+    while not output_queue.empty():
+        results.append(output_queue.get())
+
+    return results
+
+# Test the queuing function
+requests = ["Request 1", "Request 2", "Request 3"]
+results = queuing_function(requests)
+
+for idx, result in enumerate(results):
+    print(f"Result for {requests[idx]}: {result}")
