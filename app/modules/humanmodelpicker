@@ -1,6 +1,9 @@
 if a human model is selected, add that person to generation parameters
 this is low priority
 
+this would be appended to the begining of the prompt
+for example "HUMANMODELNAME" + "sitting at a restaurant table with a" + "pizza"
+
 need to have a list of human models that are present in the latent space of each model stored in the DB
 
 if a model is picked exists in the latent space of another stable-diffusion-checkpoint, need to send override to change that model

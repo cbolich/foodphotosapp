@@ -5,8 +5,9 @@
 # part 3 is ingredients after a comma from the first 2 parts
 # a spicy tuna poke bowl on a marble table, avocado, tomato, edamame
 # these improvements will pull from lists in the DB tied to each food item, 
-# shitty python function below, the commas need to be able to float or be prepopulated in the DB
+# there needs to be both a prompt and a negative prompt
 
+# shitty python function below, the commas need to be able to float or be prepopulated in the DB
 
 def concatenate_strings(*args):
     result = ""
