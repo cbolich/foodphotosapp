@@ -1,7 +1,20 @@
-# receive user input parameters from flutterflow
-# improve first ~10-20 words of prompt, do not solve for settings in this module
-# cheeseburger > a cheeseburger with lettuce, tomato and fries 
-# do in 3 parts, food first then add something with no comman like plate on wooden/marble/black/etc table
-# part 3 is ingredients after a comma from the first 2 parts
-# a spicy tuna poke bowl on a marble table, avocado, tomato, edamame
-# these improvements will pull from lists in the DB tied to each food item, 
+def concatenate_strings(*args):
+    result = ""
+    for i, arg in enumerate(args):
+        if i > 0 and arg.startswith(","):
+            result += arg
+        elif i > 0:
+            result += ", " + arg
+        else:
+            result += arg
+    return result
+
+# Example usage
+str1 = "Hello"
+str2 = "World"
+str3 = "Python"
+str4 = "is"
+str5 = "awesome"
+
+concatenated_string = concatenate_strings(str1, str2, ',', str3, str4, str5)
+print(concatenated_string)
