@@ -2,6 +2,7 @@
 #not sure if this goes here or inside nginx
 
 #need to tie this to a status pull from automatic1111
+#this is just example code
 
 
 import threading
