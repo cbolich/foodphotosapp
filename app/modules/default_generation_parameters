@@ -21,7 +21,7 @@
   "batch_size": 1,
   "n_iter": 1,
   "steps": 50,
-  "cfg_scale": 7,
+  "cfg_scale": 8.5,
   "width": 768,
   "height": 768,
   "restore_faces": false,
