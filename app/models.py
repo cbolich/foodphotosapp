@@ -3,6 +3,24 @@ from typing import Optional
 from pydantic import BaseModel, Field
 from datetime import datetime
 
+class UserRequest(BaseModel):
+    user: str = Field(...)
+    datetime: str = Field(datetime.now())
+    prompt: str = Field(...)
+    negative_prompt: str = Field(...)
+    pose: str = Field(...)
+
+    class Config:
+        allow_population_by_field_name = True
+        schema_extra = {
+            "example": {
+                "user": "jfrabut2",
+                "prompt": "Bowl of chicken noodle soup on a black counter",
+                "negative_prompt": "blurry, animated, cartoon",
+                "pose": "close up with a top down angle"
+            }
+        }
+
 class Downloads(BaseModel):
     id: str = Field(default_factory=uuid.uuid4, alias="_id")
     user: str = Field(...)
