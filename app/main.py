@@ -9,7 +9,7 @@ app = FastAPI()
 """SET UP / MISC """
 @app.on_event("startup")
 def startup_db_client():
-    app.mongodb_client = MongoClient("mongodb+srv://jfrabut2:mongodbpass@foodphotosapp.4vgexei.mongodb.net/?retryWrites=true&w=majority")
+    app.mongodb_client = MongoClient("mongodb+srv://{USER}:{PASSWORD}@foodphotosapp.4vgexei.mongodb.net/?retryWrites=true&w=majority")
     app.database = app.mongodb_client["fpa"]
 
 @app.on_event("shutdown")
