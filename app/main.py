@@ -1,55 +1,34 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from motor.motor_asyncio import AsyncIOMotorClient
-from bson.objectid import ObjectId
+from fastapi import FastAPI, Body, Request, Response, HTTPException, status
+from pymongo import MongoClient
+from fastapi.encoders import jsonable_encoder
+from typing import List
+from models import Downloads
 
 app = FastAPI()
 
-# Replace with your MongoDB connection string if needed
-MONGODB_URI = "mongodb://admin:secret@mongodb:27017"
-
-client = AsyncIOMotorClient(MONGODB_URI)
-db = client.my_database
-items_collection = db.items
-
-class Item(BaseModel):
-    id: str = None
-    name: str
-    description: str
-    price: float
-
+"""SET UP / MISC """
 @app.on_event("startup")
-async def startup_event():
-    global items_collection
-    items_collection = db.items
+def startup_db_client():
+    app.mongodb_client = MongoClient("mongodb+srv://jfrabut2:mongodbpass@foodphotosapp.4vgexei.mongodb.net/?retryWrites=true&w=majority")
+    app.database = app.mongodb_client["fpa"]
 
-@app.post("/items/", response_model=Item)
-async def create_item(item: Item):
-    item_dict = item.dict()
-    item_dict["_id"] = ObjectId()
-    await items_collection.insert_one(item_dict)
-    item.id = str(item_dict["_id"])
-    return item
+@app.on_event("shutdown")
+def shutdown_db_client():
+    app.mongodb_client.close()
 
-@app.get("/items/{item_id}", response_model=Item)
-async def read_item(item_id: str):
-    item = await items_collection.find_one({"_id": ObjectId(item_id)})
-    if not item:
-        raise HTTPException(status_code=404, detail="Item not found")
-    return Item(**item)
+# This is a helper function that I found was needed sometimes
+def document_to_model(document: dict) -> Downloads:
+    document["_id"] = str(document["_id"])
+    return Downloads(**document)
 
-@app.put("/items/{item_id}", response_model=Item)
-async def update_item(item_id: str, updated_item: Item):
-    item = await items_collection.find_one({"_id": ObjectId(item_id)})
-    if not item:
-        raise HTTPException(status_code=404, detail="Item not found")
-    await items_collection.replace_one({"_id": ObjectId(item_id)}, updated_item.dict())
-    updated_item.id = item_id
-    return updated_item
 
-@app.delete("/items/{item_id}")
-async def delete_item(item_id: str):
-    delete_result = await items_collection.delete_one({"_id": ObjectId(item_id)})
-    if delete_result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Item not found")
-    return {"message": "Item deleted successfully"}
+"""ROUTES"""
+@app.get("/", response_description="Home")
+def home(request: Request):
+    return {"message": "Welcome home"}
+
+# This lists 100 items in the downloads colelction
+@app.get("/downloads", response_description="List all dls", response_model=List[Downloads])
+def list_downloads(request: Request):
+    dls = list(request.app.database["Downloads"].find(limit=100))
+    return [document_to_model(download) for download in dls]
