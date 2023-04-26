@@ -3,6 +3,8 @@ from pymongo import MongoClient
 from fastapi.encoders import jsonable_encoder
 from typing import List
 from models import Downloads, UserRequest
+from modules.queuing import queuing_function
+
 
 app = FastAPI()
 
@@ -27,17 +29,32 @@ def document_to_model(document: dict) -> Downloads:
 def home(request: Request):
     return {"message": "Welcome home"}
 
+
 # main image generation route
 @app.post("/gen", response_description="Generate photos")
 async def generate(request: Request, userRequest: UserRequest):
     # get prompt and other parameters from user
     user_request_dict = userRequest.dict()
     print(user_request_dict)
+    
+    #example requests
+    requests = ["Request 1", "Request 2", "Request 3"]
+
+    #call the queuing function
+    results = await queuing_function(requests)
+#    results = queuing_function(user_request_dict)
+
 
     # log the user request
     app.database.requests.insert_one(user_request_dict)
 
+    # Process the results
+    for idx, result in enumerate(results):
+        print(f"Result for {requests[idx]}: {result}")
+
     # improve prompt
+
+
 
     # choose relevant pose
 
@@ -70,3 +87,17 @@ async def generate(request: Request, userRequest: UserRequest):
 def list_downloads(request: Request):
     dls = list(request.app.database["Downloads"].find(limit=100))
     return [document_to_model(download) for download in dls]
+
+@app.get("/queue/status", response_description="Get Queue Status")
+def queue_status(request: Request, user_id: Optional[int] = None):
+    status = get_queue_status(user_id)
+    response = {
+        "msg": "estimation",
+        "rank": status["rank"],
+        "queue_size": status["queue_size"],
+        "avg_event_process_time": status["avg_event_process_time"],
+        "avg_event_concurrent_process_time": status["avg_event_concurrent_process_time"],
+        "rank_eta": status["rank_eta"],
+        "queue_eta": status["queue_eta"],
+    }
+    return response
