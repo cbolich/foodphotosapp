@@ -186,7 +186,7 @@ async def generate(request: Request, userRequest: UserRequest):
         print("saved")
         count+= 1
 
-    # find a way to send images to user
+    # find a way to send images to users
 
     return {"status": "working"}
 
