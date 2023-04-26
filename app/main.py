@@ -4,14 +4,19 @@ from fastapi.encoders import jsonable_encoder
 from typing import List
 from models import Downloads, UserRequest
 from modules.queuing import queuing_function
-
+import asyncio
+import json
+import requests
+import io
+import base64
+from PIL import Image, PngImagePlugin
 
 app = FastAPI()
 
 """SET UP / MISC """
 @app.on_event("startup")
 def startup_db_client():
-    app.mongodb_client = MongoClient("mongodb+srv://{USER}:{PASSWORD}@foodphotosapp.4vgexei.mongodb.net/?retryWrites=true&w=majority")
+    app.mongodb_client = MongoClient("mongodb+srv://jfrabut2:yCHemjm0O8FEbDt3@foodphotosapp.4vgexei.mongodb.net/?retryWrites=true&w=majority")
     app.database = app.mongodb_client["fpa"]
 
 @app.on_event("shutdown")
@@ -47,6 +52,7 @@ async def generate(request: Request, userRequest: UserRequest):
 
     # log the user request
     app.database.requests.insert_one(user_request_dict)
+    print("logged")
 
     # Process the results
     for idx, result in enumerate(results):
@@ -59,16 +65,82 @@ async def generate(request: Request, userRequest: UserRequest):
     # choose relevant pose
 
     # prepare settings
-    settings = app.database.settings.find_one({"settings_id": 1})
+    settings = app.database.settings.find_one({"settings_id": 0})
     if (not settings):
         return {"status": "error"}
 
+
+    # pass in actual prompt
+    settings["prompt"] = user_request_dict["prompt"]
+    settings["negative_prompt"] = "blurry, low quality, animated, cartoon, silverware, fork, knife, spoon, chopsticks,"
+    
+    payload = {
+        "enable_hr": False,
+        "denoising_strength": 0,
+        "firstphase_width": 0,
+        "firstphase_height": 0,
+        "hr_scale": 2,
+        "hr_upscaler": None,
+        "hr_second_pass_steps": 0,
+        "hr_resize_x": 0,
+        "hr_resize_y": 0,
+        "prompt": user_request_dict["prompt"],
+        "styles": [
+            "string"
+        ],
+        "seed": -1,
+        "subseed": -1,
+        "subseed_strength": 0,
+        "seed_resize_from_h": -1,
+        "seed_resize_from_w": -1,
+        #"sampler_name": "string",
+        "batch_count": 10,
+        "n_iter": 1,
+        "steps": 50,
+        "cfg_scale": 8.5,
+        "width": 768,
+        "height": 768,
+        "restore_faces": False,
+        "tiling": False,
+        "do_not_save_samples": True,
+        "do_not_save_grid": True,
+        "negative_prompt": "animated",
+        "eta": 0,
+        "s_churn": 0,
+        "s_tmax": 0,
+        "s_tmin": 0,
+        "s_noise": 1,
+        "override_settings": {},
+        "override_settings_restore_afterwards": True,
+        "script_args": [],
+        #"sampler_index": "Euler A",
+        #"script_name": "string",
+        "send_images": True,
+        "save_images": False,
+        "alwayson_scripts": {}
+    }
+
     # send to A111
+    asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
 
+    url = "http://192.168.1.158:7860/sdapi/v1/txt2img"
+    response = requests.post(url, json=payload)
 
+    r = response.json()
+    print(r['parameters'])
+    print(r['info'])
+    print(len(r['images']))
+    
+    count = 0
+    # receive generate images back and save 
+    for i in r['images']:
+        image = Image.open(io.BytesIO(base64.b64decode(i.split(",",1)[0])))
+        print("saving")
+        image.save(f'output{count}.png')
+        print("saved")
+        count+= 1
 
     # get response back
-    
 
     # save reponses to data base
     """ 
