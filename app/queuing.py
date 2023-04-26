@@ -9,6 +9,7 @@ import threading
 import time
 import queue
 import asyncio
+import requests
 
 # def function_to_execute():
 #     # Simulating a function that takes some time to execute
@@ -45,31 +46,29 @@ def get_queue_status(user_id=None):
     }
     return status
 
-async def worker(input_queue, output_queue):
+async def worker(input_queue, output_queue, url, payload):
     while True:
         request = await input_queue.get()
-        if request is None:
+        if request == "STOP":
             break
-        result = function_to_execute()
+        result = requests.post(url, json=payload)
         await output_queue.put(result)
-        input_queue.task_done()
 
-async def queuing_function(requests):
+async def queuing_function(request, url, payload):
     input_queue = asyncio.Queue()
     output_queue = asyncio.Queue()
 
     # Start the worker task
-    worker_task = asyncio.create_task(worker(input_queue, output_queue))
+    worker_task = asyncio.create_task(worker(input_queue, output_queue, url, payload))
 
     # Enqueue the requests
-    for request in requests:
-        await input_queue.put(request)
+    await input_queue.put(request)
 
     # Add a sentinel to stop the worker task
-    await input_queue.put(None)
+    await input_queue.put("STOP")
 
     # Wait for the worker to finish processing all requests
-    await input_queue.join()
+    await worker_task
 
     # Retrieve the results
     results = []
@@ -77,10 +76,3 @@ async def queuing_function(requests):
         results.append(await output_queue.get())
 
     return results
-
-# Test the queuing function
-# requests = ["Request 1", "Request 2", "Request 3"]
-# results = queuing_function(requests)
-
-# for idx, result in enumerate(results):
-#     print(f"Result for {requests[idx]}: {result}")

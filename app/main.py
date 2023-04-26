@@ -8,6 +8,7 @@ import asyncio
 import json
 import requests
 import io
+import os
 import base64
 from PIL import Image, PngImagePlugin
 
@@ -45,9 +46,6 @@ async def generate(request: Request, userRequest: UserRequest):
     #example requests
     requests_gabe = ["Request 1", "Request 2", "Request 3"]
 
-    #call the queuing function
-    #results = await queuing_function(requests_gabe)
-#    results = queuing_function(user_request_dict)
 
 
     # log the user request
@@ -198,13 +196,21 @@ async def generate(request: Request, userRequest: UserRequest):
     print(len(r['images']))
     
     count = 0
+
+     #call the queuing function
+    results = await queuing_function(request, url, payload)
+
+
     # receive generate images back and save 
     for i in r['images']:
-        image = Image.open(io.BytesIO(base64.b64decode(i.split(",",1)[0])))
+        image = Image.open(io.BytesIO(base64.b64decode(i.split(",", 1)[0])))
         print("saving")
+        
+        while os.path.isfile(f'output{count}.png'):
+            count += 1
         image.save(f'output{count}.png')
-        print("saved")
-        count+= 1
+        print(f"saved as output{count}.png")
+        count += 1
 
     # get response back
 
