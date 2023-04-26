@@ -42,10 +42,23 @@ async def generate(request: Request, userRequest: UserRequest):
     # choose relevant pose
 
     # prepare settings
+    settings = app.database.settings.find_one({"settings_id": 1})
+    if (not settings):
+        return {"status": "error"}
 
     # send to A111
 
+
+
     # get response back
+    
+
+    # save reponses to data base
+    """ 
+    for file in results:
+        save_image(file, app.database.outputs)
+
+    """
 
     # find a way to send images to user
 
