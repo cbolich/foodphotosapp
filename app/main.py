@@ -42,115 +42,31 @@ async def generate(request: Request, userRequest: UserRequest):
     user_request_dict = userRequest.dict()
     print(user_request_dict)
     
-    #example requests
-    requests_gabe = ["Request 1", "Request 2", "Request 3"]
-
-    #call the queuing function
-    #results = await queuing_function(requests_gabe)
-#    results = queuing_function(user_request_dict)
-
-
     # log the user request
     app.database.requests.insert_one(user_request_dict)
 
     # Process the results
-    #for idx, result in enumerate(results):
-    #    print(f"Result for {requests[idx]}: {result}")
 
     # improve prompt
 
-
-
     # choose relevant pose
-    pose = app.database.poses.find_one({"tags": "gnocchi"})
-    print(pose)
+    tmp = app.database.poses.find_one({"tags": user_request_dict["pose"]})
+    pose = tmp["img"]
+    img_base64 = base64.b64encode(pose).decode('utf-8')
+    print(tmp["filename"])
+    
 
     # prepare settings
-    settings = app.database.settings.find_one({"settings_id": 0})
-    if (not settings):
-        return {"status": "error"}
-
-
-    # pass in actual prompt
-    settings["prompt"] = user_request_dict["prompt"]
-    settings["negative_prompt"] = "blurry, low quality, animated, cartoon, silverware, fork, knife, spoon, chopsticks,"
-    
-    # control_net_payload = {
-    #     "enable_hr": false,
-    #     "denoising_strength": 0,
-    #     "firstphase_width": 0,
-    #     "firstphase_height": 0,
-    #     "hr_scale": 2,
-    #     "hr_upscaler": "string",
-    #     "hr_second_pass_steps": 0,
-    #     "hr_resize_x": 0,
-    #     "hr_resize_y": 0,
-    #     "prompt": "",
-    #     "styles": [
-    #         "string"
-    #     ],
-    #     "seed": -1,
-    #     "subseed": -1,
-    #     "subseed_strength": 0,
-    #     "seed_resize_from_h": -1,
-    #     "seed_resize_from_w": -1,
-    #     "sampler_name": "string",
-    #     "batch_size": 1,
-    #     "n_iter": 1,
-    #     "steps": 50,
-    #     "cfg_scale": 7,
-    #     "width": 512,
-    #     "height": 512,
-    #     "restore_faces": false,
-    #     "tiling": false,
-    #     "do_not_save_samples": false,
-    #     "do_not_save_grid": false,
-    #     "negative_prompt": "string",
-    #     "eta": 0,
-    #     "s_churn": 0,
-    #     "s_tmax": 0,
-    #     "s_tmin": 0,
-    #     "s_noise": 1,
-    #     "override_settings": {},
-    #     "override_settings_restore_afterwards": true,
-    #     "script_args": [],
-    #     "sampler_index": "Euler",
-    #     "script_name": "string",
-    #     "send_images": true,
-    #     "save_images": false,
-    #     "alwayson_scripts": {},
-    #     "controlnet_units": [
-    #         {
-    #             "input_image": "",
-    #             "mask": "",
-    #             "module": "none",
-    #             "model": "None",
-    #             "weight": 1,
-    #             "resize_mode": "Crop and Resize",
-    #             "lowvram": false,
-    #             "processor_res": 64,
-    #             "threshold_a": 64,
-    #             "threshold_b": 64,
-    #             "guidance": 1,
-    #             "guidance_start": 0,
-    #             "guidance_end": 1,
-    #             "guessmode": true,
-    #             "pixel_perfect": false
-    #         }
-    #     ]
-    # }
-
-    payload = {
-        "enable_hr": False,
+    control_net_payload = {
+        "enable_hr": 0,
         "denoising_strength": 0,
         "firstphase_width": 0,
         "firstphase_height": 0,
         "hr_scale": 2,
-        "hr_upscaler": None,
         "hr_second_pass_steps": 0,
         "hr_resize_x": 0,
         "hr_resize_y": 0,
-        "prompt": user_request_dict["prompt"],
+        "prompt": "user_request_dict[\"prompt\"]",
         "styles": [
             "string"
         ],
@@ -159,44 +75,108 @@ async def generate(request: Request, userRequest: UserRequest):
         "subseed_strength": 0,
         "seed_resize_from_h": -1,
         "seed_resize_from_w": -1,
-        #"sampler_name": "string",
-        "batch_count": 10,
+        "batch_size": 1,
         "n_iter": 1,
         "steps": 50,
-        "cfg_scale": 8.5,
-        "width": 768,
-        "height": 768,
-        "restore_faces": False,
-        "tiling": False,
-        "do_not_save_samples": True,
-        "do_not_save_grid": True,
-        "negative_prompt": "animated",
+        "cfg_scale": 7,
+        "width": 512,
+        "height": 512,
+        "restore_faces": 0,
+        "tiling": 0,
+        "do_not_save_samples": 0,
+        "do_not_save_grid": 0,
+        "negative_prompt": "blurry, low quality, animated, cartoon, silverware, fork, knife, spoon, chopsticks,",
         "eta": 0,
         "s_churn": 0,
         "s_tmax": 0,
         "s_tmin": 0,
         "s_noise": 1,
         "override_settings": {},
-        "override_settings_restore_afterwards": True,
+        "override_settings_restore_afterwards": 1,
         "script_args": [],
-        #"sampler_index": "Euler A",
-        #"script_name": "string",
-        "send_images": True,
-        "save_images": False,
-        "alwayson_scripts": {}
-    }
+        "sampler_index": "Euler",
+        "send_images": 1,
+        "save_images": 0,
+        "alwayson_scripts": {},
+        "controlnet_units": [
+                {
+                    "input_image": "img_base64",
+                    "mask": "",
+                    "module": "none",
+                    "model": "control_sd15_canny",
+                    "weight": 1,
+                    "resize_mode": "Crop and Resize",
+                    "lowvram": 0,
+                    "processor_res": 64,
+                    "threshold_a": 64,
+                    "threshold_b": 64,
+                    "guidance": 1,
+                    "guidance_start": 0,
+                    "guidance_end": 1,
+                    "guessmode": 1,
+                    "pixel_perfect": 0
+                }
+            ]
+        }
+
+    control_net_payload["controlnet_units"][0]["input_image"] = img_base64
+    control_net_payload["prompt"] = user_request_dict["prompt"]
+
+    # This is the old payload (no control net)
+    # payload = {
+    #     "enable_hr": False,
+    #     "denoising_strength": 0,
+    #     "firstphase_width": 0,
+    #     "firstphase_height": 0,
+    #     "hr_scale": 2,
+    #     "hr_upscaler": None,
+    #     "hr_second_pass_steps": 0,
+    #     "hr_resize_x": 0,
+    #     "hr_resize_y": 0,
+    #     "prompt": user_request_dict["prompt"],
+    #     "styles": [
+    #         "string"
+    #     ],
+    #     "seed": -1,
+    #     "subseed": -1,
+    #     "subseed_strength": 0,
+    #     "seed_resize_from_h": -1,
+    #     "seed_resize_from_w": -1,
+    #     #"sampler_name": "string",
+    #     "batch_count": 10,
+    #     "n_iter": 1,
+    #     "steps": 50,
+    #     "cfg_scale": 8.5,
+    #     "width": 768,
+    #     "height": 768,
+    #     "restore_faces": False,
+    #     "tiling": False,
+    #     "do_not_save_samples": True,
+    #     "do_not_save_grid": True,
+    #     "negative_prompt": "animated",
+    #     "eta": 0,
+    #     "s_churn": 0,
+    #     "s_tmax": 0,
+    #     "s_tmin": 0,
+    #     "s_noise": 1,
+    #     "override_settings": {},
+    #     "override_settings_restore_afterwards": True,
+    #     "script_args": [],
+    #     #"sampler_index": "Euler A",
+    #     #"script_name": "string",
+    #     "send_images": True,
+    #     "save_images": False,
+    #     "alwayson_scripts": {}
+    # }
 
     # send to A111
     asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
 
-    url = "http://192.168.1.158:7860/sdapi/v1/txt2img"
-    response = requests.post(url, json=payload)
+    url = "http://192.168.1.158:7860/controlnet/txt2img"
+    response = requests.post(url, json=control_net_payload)
 
     r = response.json()
-    print(r['parameters'])
-    print(r['info'])
-    print(len(r['images']))
-    
+
     count = 0
     # receive generate images back and save 
     for i in r['images']:
@@ -205,15 +185,6 @@ async def generate(request: Request, userRequest: UserRequest):
         image.save(f'output{count}.png')
         print("saved")
         count+= 1
-
-    # get response back
-
-    # save reponses to data base
-    """ 
-    for file in results:
-        save_image(file, app.database.outputs)
-
-    """
 
     # find a way to send images to user
 
