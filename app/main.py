@@ -3,7 +3,7 @@ from pymongo import MongoClient
 from fastapi.encoders import jsonable_encoder
 from typing import List
 from models import Downloads, UserRequest
-from modules.queuing import queuing_function
+from queuing import queuing_function, get_queue_status
 import asyncio
 import json
 import requests
@@ -74,6 +74,71 @@ async def generate(request: Request, userRequest: UserRequest):
     settings["prompt"] = user_request_dict["prompt"]
     settings["negative_prompt"] = "blurry, low quality, animated, cartoon, silverware, fork, knife, spoon, chopsticks,"
     
+    control_net_payload = {
+        "enable_hr": false,
+        "denoising_strength": 0,
+        "firstphase_width": 0,
+        "firstphase_height": 0,
+        "hr_scale": 2,
+        "hr_upscaler": "string",
+        "hr_second_pass_steps": 0,
+        "hr_resize_x": 0,
+        "hr_resize_y": 0,
+        "prompt": "",
+        "styles": [
+            "string"
+        ],
+        "seed": -1,
+        "subseed": -1,
+        "subseed_strength": 0,
+        "seed_resize_from_h": -1,
+        "seed_resize_from_w": -1,
+        "sampler_name": "string",
+        "batch_size": 1,
+        "n_iter": 1,
+        "steps": 50,
+        "cfg_scale": 7,
+        "width": 512,
+        "height": 512,
+        "restore_faces": false,
+        "tiling": false,
+        "do_not_save_samples": false,
+        "do_not_save_grid": false,
+        "negative_prompt": "string",
+        "eta": 0,
+        "s_churn": 0,
+        "s_tmax": 0,
+        "s_tmin": 0,
+        "s_noise": 1,
+        "override_settings": {},
+        "override_settings_restore_afterwards": true,
+        "script_args": [],
+        "sampler_index": "Euler",
+        "script_name": "string",
+        "send_images": true,
+        "save_images": false,
+        "alwayson_scripts": {},
+        "controlnet_units": [
+            {
+                "input_image": "",
+                "mask": "",
+                "module": "none",
+                "model": "None",
+                "weight": 1,
+                "resize_mode": "Crop and Resize",
+                "lowvram": false,
+                "processor_res": 64,
+                "threshold_a": 64,
+                "threshold_b": 64,
+                "guidance": 1,
+                "guidance_start": 0,
+                "guidance_end": 1,
+                "guessmode": true,
+                "pixel_perfect": false
+            }
+        ]
+    }
+
     payload = {
         "enable_hr": False,
         "denoising_strength": 0,
@@ -161,7 +226,7 @@ def list_downloads(request: Request):
     return [document_to_model(download) for download in dls]
 
 @app.get("/queue/status", response_description="Get Queue Status")
-def queue_status(request: Request, user_id: Optional[int] = None):
+def queue_status(request: Request, user_id: int = None):
     status = get_queue_status(user_id)
     response = {
         "msg": "estimation",
