@@ -52,7 +52,7 @@ async def worker(input_queue, output_queue, url, payload):
         if request == "STOP":
             break
         result = requests.post(url, json=payload)
-        await output_queue.put(result)
+        await output_queue.put(result.json())
 
 async def queuing_function(request, url, payload):
     input_queue = asyncio.Queue()

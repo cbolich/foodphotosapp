@@ -11,6 +11,7 @@ import io
 import os
 import base64
 from PIL import Image, PngImagePlugin
+from datetime import datetime
 
 app = FastAPI()
 
@@ -108,7 +109,7 @@ async def generate(request: Request, userRequest: UserRequest):
                     "weight": 1,
                     "resize_mode": "Crop and Resize",
                     "lowvram": 0,
-                    "processor_res": 64,
+                    "processor_res": 512,
                     "threshold_a": 64,
                     "threshold_b": 64,
                     "guidance": 1,
@@ -174,25 +175,29 @@ async def generate(request: Request, userRequest: UserRequest):
     asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
 
     url = "http://192.168.1.158:7860/controlnet/txt2img"
-    response = requests.post(url, json=control_net_payload)
+    # response = requests.post(url, json=control_net_payload)
 
-    r = response.json()
+    # r = response.json()
 
     count = 0
 
      #call the queuing function
-    results = await queuing_function(request, url, payload)
+    results = await queuing_function(request, url, control_net_payload)
 
+    r = results[0]
+    image_list = []
 
-    # receive generate images back and save 
+    #receive generate images back and save 
     for i in r['images']:
         image = Image.open(io.BytesIO(base64.b64decode(i.split(",", 1)[0])))
-        print("saving")
+        image_list.append(i.split(",", 1)[0])
         
         while os.path.isfile(f'output{count}.png'):
             count += 1
         image.save(f'output{count}.png')
         print(f"saved as output{count}.png")
+        app.database.outputs.insert_one({"image": i.split(",", 1)[0], "filename": f'output{count}.png', "creation_time": datetime.now()})
+
         count += 1
 
     # find a way to send images to users
