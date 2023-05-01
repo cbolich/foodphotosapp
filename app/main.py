@@ -80,7 +80,7 @@ async def generate(request: Request, userRequest: UserRequest):
         "batch_size": 1,
         "n_iter": 1,
         "steps": 50,
-        "cfg_scale": 7,
+        "cfg_scale": 9,
         "width": 768,
         "height": 768,
         "restore_faces": 0,
@@ -174,7 +174,7 @@ async def generate(request: Request, userRequest: UserRequest):
     # send to A111
     asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
 
-    url = "http://192.168.1.158:7860/controlnet/txt2img"
+    url = "http://192.168.1.118:7860/controlnet/txt2img"
     # response = requests.post(url, json=control_net_payload)
 
     # r = response.json()
