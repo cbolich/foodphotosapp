@@ -174,7 +174,7 @@ async def generate(request: Request, userRequest: UserRequest):
     # send to A111
     asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
 
-    url = "http://192.168.1.118:7860/controlnet/txt2img"
+    url = "https://auto1.yummyrender.com/controlnet/txt2img"
     # response = requests.post(url, json=control_net_payload)
 
     # r = response.json()
@@ -190,7 +190,7 @@ async def generate(request: Request, userRequest: UserRequest):
     #receive generate images back and save 
     for i in r['images']:
         image = Image.open(io.BytesIO(base64.b64decode(i.split(",", 1)[0])))
-        image_list.append(i.split(",", 1)[0])
+        image_list.append(base64.b64decode(i.split(",", 1)[0]))
         
         while os.path.isfile(f'output{count}.png'):
             count += 1
@@ -202,8 +202,7 @@ async def generate(request: Request, userRequest: UserRequest):
 
     # find a way to send images to users
 
-    return {"status": "working"}
-
+    return {"status": "working", "img": image_list[0]}
 
 # This lists 100 items in the downloads colelction
 @app.get("/downloads", response_description="List all dls", response_model=List[Downloads])
