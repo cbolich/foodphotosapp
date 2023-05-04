@@ -59,122 +59,125 @@ async def generate(request: Request, userRequest: UserRequest):
     
 
     # prepare settings
-    control_net_payload = {
-        "enable_hr": 0,
-        "denoising_strength": 0,
-        "firstphase_width": 0,
-        "firstphase_height": 0,
-        "hr_scale": 2,
-        "hr_second_pass_steps": 0,
-        "hr_resize_x": 0,
-        "hr_resize_y": 0,
-        "prompt": "user_request_dict[\"prompt\"]",
-        "styles": [
-            "string"
-        ],
-        "seed": -1,
-        "subseed": -1,
-        "subseed_strength": 0,
-        "seed_resize_from_h": -1,
-        "seed_resize_from_w": -1,
-        "batch_size": 1,
-        "n_iter": 1,
-        "steps": 50,
-        "cfg_scale": 9,
-        "width": 768,
-        "height": 768,
-        "restore_faces": 0,
-        "tiling": 0,
-        "do_not_save_samples": 0,
-        "do_not_save_grid": 0,
-        "negative_prompt": "blurry, low quality, animated, cartoon, silverware, fork, knife, spoon, chopsticks,",
-        "eta": 0,
-        "s_churn": 0,
-        "s_tmax": 0,
-        "s_tmin": 0,
-        "s_noise": 1,
-        "override_settings": {},
-        "override_settings_restore_afterwards": 1,
-        "script_args": [],
-        "sampler_index": "Euler",
-        "send_images": 1,
-        "save_images": 0,
-        "alwayson_scripts": {},
-        "controlnet_units": [
-                {
-                    "input_image": "img_base64",
-                    "mask": "",
-                    "module": "canny",
-                    "model": "control_sd15_canny",
-                    "weight": 1,
-                    "resize_mode": "Crop and Resize",
-                    "lowvram": 0,
-                    "processor_res": 512,
-                    "threshold_a": 64,
-                    "threshold_b": 64,
-                    "guidance": 1,
-                    "guidance_start": 0,
-                    "guidance_end": 1,
-                    "guessmode": 1,
-                    "pixel_perfect": 0
-                }
-            ]
+    # if there is a pose photo, use control net
+    if pose:
+        payload = {
+            "enable_hr": 0,
+            "denoising_strength": 0,
+            "firstphase_width": 0,
+            "firstphase_height": 0,
+            "hr_scale": 2,
+            "hr_second_pass_steps": 0,
+            "hr_resize_x": 0,
+            "hr_resize_y": 0,
+            "prompt": "",
+            "styles": [
+                "string"
+            ],
+            "seed": -1,
+            "subseed": -1,
+            "subseed_strength": 0,
+            "seed_resize_from_h": -1,
+            "seed_resize_from_w": -1,
+            "batch_size": 1,
+            "n_iter": 10,
+            "steps": 50,
+            "cfg_scale": 9,
+            "width": 768,
+            "height": 768,
+            "restore_faces": False,
+            "tiling": False,
+            "do_not_save_samples": False,
+            "do_not_save_grid": False,
+            "negative_prompt": "blurry, low quality, animated, cartoon, silverware, fork, knife, spoon, chopsticks,",
+            "eta": 0,
+            "s_churn": 0,
+            "s_tmax": 0,
+            "s_tmin": 0,
+            "s_noise": 1,
+            "override_settings": {},
+            "override_settings_restore_afterwards": True,
+            "script_args": [],
+            "sampler_index": "Euler",
+            "send_images": True,
+            "save_images": False,
+            "alwayson_scripts": {},
+            "controlnet_units": [
+                    {
+                        "input_image": "img_base64",
+                        "mask": "",
+                        "module": "canny",
+                        "model": "control_sd15_canny",
+                        "weight": 1,
+                        "resize_mode": "Crop and Resize",
+                        "lowvram": 0,
+                        "processor_res": 512,
+                        "threshold_a": 64,
+                        "threshold_b": 64,
+                        "guidance": 1,
+                        "guidance_start": 0,
+                        "guidance_end": 1,
+                        "guessmode": 1,
+                        "pixel_perfect": 0
+                    }
+                ]
+            }
+
+        payload["controlnet_units"][0]["input_image"] = img_base64
+        payload["prompt"] = user_request_dict["prompt"]
+
+    # if there's no pose photo, don't use control net
+    else:
+        payload = {
+            "enable_hr": False,
+            "denoising_strength": 0,
+            "firstphase_width": 0,
+            "firstphase_height": 0,
+            "hr_scale": 2,
+            "hr_upscaler": None,
+            "hr_second_pass_steps": 0,
+            "hr_resize_x": 0,
+            "hr_resize_y": 0,
+            "prompt": user_request_dict["prompt"],
+            "styles": [
+                "string"
+            ],
+            "seed": -1,
+            "subseed": -1,
+            "subseed_strength": 0,
+            "seed_resize_from_h": -1,
+            "seed_resize_from_w": -1,
+            #"sampler_name": "string",
+            "batch_count": 1,
+            "n_iter": 1,
+            "steps": 50,
+            "cfg_scale": 9,
+            "width": 768,
+            "height": 768,
+            "restore_faces": False,
+            "tiling": False,
+            "do_not_save_samples": True,
+            "do_not_save_grid": True,
+            "negative_prompt": "animated",
+            "eta": 0,
+            "s_churn": 0,
+            "s_tmax": 0,
+            "s_tmin": 0,
+            "s_noise": 1,
+            "override_settings": {},
+            "override_settings_restore_afterwards": True,
+            "script_args": [],
+            #"sampler_index": "Euler A",
+            #"script_name": "string",
+            "send_images": True,
+            "save_images": False,
+            "alwayson_scripts": {}
         }
-
-    control_net_payload["controlnet_units"][0]["input_image"] = img_base64
-    control_net_payload["prompt"] = user_request_dict["prompt"]
-
-    # This is the old payload (no control net)
-    # payload = {
-    #     "enable_hr": False,
-    #     "denoising_strength": 0,
-    #     "firstphase_width": 0,
-    #     "firstphase_height": 0,
-    #     "hr_scale": 2,
-    #     "hr_upscaler": None,
-    #     "hr_second_pass_steps": 0,
-    #     "hr_resize_x": 0,
-    #     "hr_resize_y": 0,
-    #     "prompt": user_request_dict["prompt"],
-    #     "styles": [
-    #         "string"
-    #     ],
-    #     "seed": -1,
-    #     "subseed": -1,
-    #     "subseed_strength": 0,
-    #     "seed_resize_from_h": -1,
-    #     "seed_resize_from_w": -1,
-    #     #"sampler_name": "string",
-    #     "batch_count": 10,
-    #     "n_iter": 1,
-    #     "steps": 50,
-    #     "cfg_scale": 8.5,
-    #     "width": 768,
-    #     "height": 768,
-    #     "restore_faces": False,
-    #     "tiling": False,
-    #     "do_not_save_samples": True,
-    #     "do_not_save_grid": True,
-    #     "negative_prompt": "animated",
-    #     "eta": 0,
-    #     "s_churn": 0,
-    #     "s_tmax": 0,
-    #     "s_tmin": 0,
-    #     "s_noise": 1,
-    #     "override_settings": {},
-    #     "override_settings_restore_afterwards": True,
-    #     "script_args": [],
-    #     #"sampler_index": "Euler A",
-    #     #"script_name": "string",
-    #     "send_images": True,
-    #     "save_images": False,
-    #     "alwayson_scripts": {}
-    # }
 
     # send to A111
     asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
 
-    url = "http://192.168.1.118:7860/controlnet/txt2img"
+    url = "https://auto1.yummyrender.com/controlnet/txt2img"
     # response = requests.post(url, json=control_net_payload)
 
     # r = response.json()
@@ -182,9 +185,12 @@ async def generate(request: Request, userRequest: UserRequest):
     count = 0
 
      #call the queuing function
-    results = await queuing_function(request, url, control_net_payload)
+    # results = await queuing_function(request, url, payload)
+    # r = results[0]
+    results = requests.post(url, json=payload)
+    r = results.json()
 
-    r = results[0]
+    
     image_list = []
 
     #receive generate images back and save 
