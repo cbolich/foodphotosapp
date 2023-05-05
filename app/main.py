@@ -128,7 +128,7 @@ async def generate(request: Request, userRequest: UserRequest):
         payload["controlnet_units"][0]["input_image"] = img_base64
         payload["prompt"] = user_request_dict["prompt"]
 
-        url = "https://auto1.yummyrender.com/controlnet/txt2img"
+        url = "https://auto2.yummyrender.com/controlnet/txt2img"
 
     # if there's no pose photo, don't use control net
     else:
@@ -179,7 +179,7 @@ async def generate(request: Request, userRequest: UserRequest):
             "alwayson_scripts": {}
         }
 
-        url = "https://auto1.yummyrender.com/sdapi/v1/txt2img"
+        url = "https://auto2.yummyrender.com/sdapi/v1/txt2img"
 
     # send to A111
     asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
@@ -204,11 +204,8 @@ async def generate(request: Request, userRequest: UserRequest):
 
     #receive generate images back and save 
     for i in r['images']:
-        print("1")
         image = Image.open(io.BytesIO(base64.b64decode(i.split(",", 1)[0])))
-        print("2")
         image_list.append(base64.b64decode(i.split(",", 1)[0]))
-        print("3")
         
         image.save(f'output{count}.png')
         print(f"saved as output{count}.png")
