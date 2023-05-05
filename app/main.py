@@ -106,8 +106,8 @@ async def generate(request: Request, userRequest: UserRequest):
                     {
                         "input_image": "img_base64",
                         "mask": "",
-                        "module": "midas",
-                        "model": "control_sd15_normal",
+                        "module": "canny",
+                        "model": "control_sd15_canny",
                         "weight": 1,
                         "resize_mode": "Crop and Resize",
                         "lowvram": 0,
