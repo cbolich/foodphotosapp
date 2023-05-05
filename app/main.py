@@ -120,7 +120,7 @@ async def generate(request: Request, userRequest: UserRequest):
                         "guidance_start": 0,
                         "guidance_end": 1,
                         "guessmode": 1,
-                        "pixel_perfect": 0
+                        "pixel_perfect": True
                     }
                 ]
             }
@@ -128,7 +128,7 @@ async def generate(request: Request, userRequest: UserRequest):
         payload["controlnet_units"][0]["input_image"] = img_base64
         payload["prompt"] = user_request_dict["prompt"]
 
-        url = "https://auto2.yummyrender.com/controlnet/txt2img"
+        url = "https://auto1.yummyrender.com/controlnet/txt2img"
 
     # if there's no pose photo, don't use control net
     else:
@@ -179,7 +179,7 @@ async def generate(request: Request, userRequest: UserRequest):
             "alwayson_scripts": {}
         }
 
-        url = "https://auto2.yummyrender.com/sdapi/v1/txt2img"
+        url = "https://auto1.yummyrender.com/sdapi/v1/txt2img"
 
     # send to A111
     asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
