@@ -54,8 +54,6 @@ async def generate(request: Request, userRequest: UserRequest):
     # choose relevant pose
     tmp = app.database.poses.find_one({"tags": user_request_dict["pose"]})
     
-    
-
     # prepare settings
     # if there is a pose photo, use control net
     if tmp:
@@ -108,7 +106,7 @@ async def generate(request: Request, userRequest: UserRequest):
                     {
                         "input_image": "img_base64",
                         "mask": "",
-                        "module": "normal_midas",
+                        "module": "midas",
                         "model": "control_sd15_normal",
                         "weight": 1,
                         "resize_mode": "Crop and Resize",
@@ -128,7 +126,7 @@ async def generate(request: Request, userRequest: UserRequest):
         payload["controlnet_units"][0]["input_image"] = img_base64
         payload["prompt"] = user_request_dict["prompt"]
 
-        url = "https://auto1.yummyrender.com/controlnet/txt2img"
+        url = "https://auto2.yummyrender.com/controlnet/txt2img"
 
     # if there's no pose photo, don't use control net
     else:
@@ -184,11 +182,7 @@ async def generate(request: Request, userRequest: UserRequest):
     # send to A111
     asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
 
-    
-    # response = requests.post(url, json=control_net_payload)
-
-    # r = response.json()
-
+    # intialize the counter
     count = 0
     while os.path.isfile(f'output{count}.png'):
             count += 1
@@ -196,8 +190,6 @@ async def generate(request: Request, userRequest: UserRequest):
      #call the queuing function
     results = await queuing_function(request, url, payload)
     r = results[0]
-    # results = requests.post(url, json=payload)
-    # r = results.json()
 
     
     image_list = []
@@ -205,7 +197,7 @@ async def generate(request: Request, userRequest: UserRequest):
     #receive generate images back and save 
     for i in r['images']:
         image = Image.open(io.BytesIO(base64.b64decode(i.split(",", 1)[0])))
-        image_list.append(base64.b64decode(i.split(",", 1)[0]))
+        image_list.append(i.split(",", 1)[0])
         
         image.save(f'output{count}.png')
         print(f"saved as output{count}.png")
@@ -215,7 +207,7 @@ async def generate(request: Request, userRequest: UserRequest):
 
     # find a way to send images to users
 
-    return {"status": "working", "img": f"{image_list[0]}"}
+    return {"status": "working", "img": f"{str(image_list[0])}"}
 
 # This lists 100 items in the downloads colelction
 @app.get("/downloads", response_description="List all dls", response_model=List[Downloads])

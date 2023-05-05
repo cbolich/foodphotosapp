@@ -51,7 +51,7 @@ async def worker(input_queue, output_queue, url, payload):
         request = await input_queue.get()
         if request == "STOP":
             break
-        result = requests.post(url, json=payload, timeout=500)
+        result = requests.post(url, json=payload, timeout=1000)
         await output_queue.put(result.json())
 
 async def queuing_function(request, url, payload):
