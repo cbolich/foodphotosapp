@@ -53,14 +53,16 @@ async def generate(request: Request, userRequest: UserRequest):
 
     # choose relevant pose
     tmp = app.database.poses.find_one({"tags": user_request_dict["pose"]})
-    pose = tmp["img"]
-    img_base64 = base64.b64encode(pose).decode('utf-8')
-    print(tmp["filename"])
+    
     
 
     # prepare settings
     # if there is a pose photo, use control net
-    if pose:
+    if tmp:
+        pose = tmp["img"]
+        img_base64 = base64.b64encode(pose).decode('utf-8')
+        print(tmp["filename"])
+
         payload = {
             "enable_hr": 0,
             "denoising_strength": 0,
