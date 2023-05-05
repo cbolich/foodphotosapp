@@ -128,8 +128,11 @@ async def generate(request: Request, userRequest: UserRequest):
         payload["controlnet_units"][0]["input_image"] = img_base64
         payload["prompt"] = user_request_dict["prompt"]
 
+        url = "https://auto1.yummyrender.com/controlnet/txt2img"
+
     # if there's no pose photo, don't use control net
     else:
+        print("No pose")
         payload = {
             "enable_hr": False,
             "denoising_strength": 0,
@@ -176,32 +179,37 @@ async def generate(request: Request, userRequest: UserRequest):
             "alwayson_scripts": {}
         }
 
+        url = "https://auto1.yummyrender.com/sdapi/v1/txt2img"
+
     # send to A111
     asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
 
-    url = "https://auto1.yummyrender.com/controlnet/txt2img"
+    
     # response = requests.post(url, json=control_net_payload)
 
     # r = response.json()
 
     count = 0
+    while os.path.isfile(f'output{count}.png'):
+            count += 1
 
      #call the queuing function
-    # results = await queuing_function(request, url, payload)
-    # r = results[0]
-    results = requests.post(url, json=payload)
-    r = results.json()
+    results = await queuing_function(request, url, payload)
+    r = results[0]
+    # results = requests.post(url, json=payload)
+    # r = results.json()
 
     
     image_list = []
 
     #receive generate images back and save 
     for i in r['images']:
+        print("1")
         image = Image.open(io.BytesIO(base64.b64decode(i.split(",", 1)[0])))
+        print("2")
         image_list.append(base64.b64decode(i.split(",", 1)[0]))
+        print("3")
         
-        while os.path.isfile(f'output{count}.png'):
-            count += 1
         image.save(f'output{count}.png')
         print(f"saved as output{count}.png")
         app.database.outputs.insert_one({"image": i.split(",", 1)[0], "filename": f'output{count}.png', "creation_time": datetime.now()})
@@ -210,7 +218,7 @@ async def generate(request: Request, userRequest: UserRequest):
 
     # find a way to send images to users
 
-    return {"status": "working", "img": image_list[0]}
+    return {"status": "working", "img": f"{image_list[0]}"}
 
 # This lists 100 items in the downloads colelction
 @app.get("/downloads", response_description="List all dls", response_model=List[Downloads])
